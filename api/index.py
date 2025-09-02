@@ -6,8 +6,8 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": os.getenv("CORS_ORIGIN", "*")}})
 
-@app.route('/api/chat', methods=['GET', 'POST', 'OPTIONS'])
-def chat_handler():
+@app.route('/', methods=['GET', 'POST', 'OPTIONS'])
+def handler():
     if request.method == 'OPTIONS':
         return '', 204
 
@@ -46,12 +46,13 @@ def chat_handler():
             max_tokens=max_tokens
         )
         choice = completion.choices[0].message if completion.choices else None
+        message_dict = {"role": choice.role, "content": choice.content} if choice else None
         return jsonify({
             "id": completion.id,
             "created": completion.created,
             "model": completion.model,
             "usage": completion.usage,
-            "message": choice.to_dict() if choice else None
+            "message": message_dict
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
